@@ -10,6 +10,11 @@ TMPDIR="$(mktemp -d)"
 cleanup() { rm -rf "$TMPDIR"; }
 trap cleanup EXIT
 
+if [[ $EUID -ne 0 ]]; then
+  echo "Run as root: sudo $0"
+  exit 1
+fi
+
 echo "Installing mitmproxy ${VERSION} (${ARCH})..."
 wget -q -O "$TMPDIR/mitmproxy.tar.gz" "$URL"
 tar -xzf "$TMPDIR/mitmproxy.tar.gz" -C "$TMPDIR"
@@ -20,3 +25,11 @@ done
 
 echo "Installed:"
 mitmdump --version
+
+sed "s|^EnvironmentFile=.*|EnvironmentFile=${ROOT}/config/mitmproxy.env|" \
+  "$ROOT/systemd/fusion-proxy.service" > /etc/systemd/system/fusion-proxy.service
+
+systemctl daemon-reload
+systemctl enable --now fusion-proxy
+
+echo "fusion-proxy is running. Check: ${ROOT}/scripts/verify.sh"
