@@ -1,0 +1,19 @@
+[Unit]
+Description=Fusion 360 HTTP forward proxy (mitmproxy)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/root/fusion-proxy/config/mitmproxy.env
+ExecStart=/usr/local/bin/mitmdump \
+  --mode ${MITMDUMP_MODE} \
+  --listen-host ${MITMDUMP_LISTEN_HOST} \
+  --listen-port ${MITMDUMP_LISTEN_PORT} \
+  --set block_global=${MITMDUMP_BLOCK_GLOBAL} \
+  --ignore-hosts ${MITMDUMP_IGNORE_HOSTS}
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
